@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Rotating Sphere with Text</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: black; display: flex; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const particles = [];
+        const particleCount = 9000; // 입자 개수
+        const radius = Math.min(width, height) * 0.35;
+        const particleSize = 0.5; // 입자 크기
+
+        // 랜덤 숫자 범위
+        function randomRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        // 3D 회전을 위한 각도 변환 (Y축 중심 회전)
+        function rotateY(x, z, angleY) {
+            let tempX = x * Math.cos(angleY) - z * Math.sin(angleY);
+            let tempZ = x * Math.sin(angleY) + z * Math.cos(angleY);
+            return { x: tempX, z: tempZ };
+        }
+
+        // 구 형태의 파티클 생성
+        for (let i = 0; i < particleCount; i++) {
+            let theta = Math.acos(randomRange(-1, 1));
+            let phi = randomRange(0, Math.PI * 2);
+
+            let x = radius * Math.sin(theta) * Math.cos(phi);
+            let y = radius * Math.sin(theta) * Math.sin(phi);
+            let z = radius * Math.cos(theta);
+
+            particles.push({ x, y, z });
+        }
+
+        let angleY = 0;
+        const rotationSpeed = 0.003; // 회전 속도
+
+        function drawText() {
+            ctx.font = "bold 40px Arial, sans-serif"; // 텍스트 스타일
+            ctx.fillStyle = "white"; // 흰색 글씨
+            ctx.textAlign = "center"; // 중앙 정렬
+            const textY = height / 2 + radius + 50; // 구 아래 위치
+            ctx.fillText("NEW YORK", width / 2, textY);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+            angleY -= rotationSpeed; // Y축 중심 회전
+
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            particles.forEach(p => {
+                let rotated = rotateY(p.x, p.z, angleY);
+                let screenX = centerX + rotated.x;
+                let screenY = centerY + p.y;
+
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, particleSize, 0, Math.PI * 2);
+                ctx.fillStyle = "white";
+                ctx.fill();
+            });
+
+            drawText(); // 텍스트 렌더링
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        // 창 크기 변경 시 canvas 크기 조정
+        window.addEventListener("resize", () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>
